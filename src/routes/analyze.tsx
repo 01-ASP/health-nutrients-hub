@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UploadCloud, Camera, Loader2, ChevronDown, Save, Share2, RefreshCw, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { mockAnalyze, insightFor, type AnalyzedItem } from "@/lib/analyze";
+import { analyzeFoodImage } from "@/lib/vision.functions";
 import { SAMPLE_MEALS } from "@/data/foods";
 import { useDiary } from "@/store/diary";
 import { Counter } from "@/lib/counter";
@@ -17,19 +19,32 @@ export const Route = createFileRoute("/analyze")({
 type Phase = "idle" | "loading" | "done";
 const STEPS = ["Detecting food items…", "Estimating portions…", "Calculating nutrition…"];
 
+async function fileToCompressedDataUrl(file: File, maxDim = 1024, quality = 0.85): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
 function AnalyzePage() {
-  const [image, setImage] = useState<{ url: string; name: string; size: number; sampleId?: string } | null>(null);
+  const [image, setImage] = useState<{ url: string; name: string; size: number; sampleId?: string; file?: File } | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [step, setStep] = useState(0);
   const [items, setItems] = useState<AnalyzedItem[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const add = useDiary((s) => s.add);
   const goal = useDiary((s) => s.goal);
+  const analyzeFn = useServerFn(analyzeFoodImage);
 
   const handleFile = (f: File) => {
     if (f.size > 10 * 1024 * 1024) { toast.error("Image too large", { description: "Max size is 10MB." }); return; }
     if (!/(jpe?g|png|webp)/i.test(f.type)) { toast.error("Unsupported format", { description: "Use JPG, PNG, or WEBP." }); return; }
-    setImage({ url: URL.createObjectURL(f), name: f.name, size: f.size });
+    setImage({ url: URL.createObjectURL(f), name: f.name, size: f.size, file: f });
     setPhase("idle");
     setItems([]);
   };
@@ -44,14 +59,29 @@ function AnalyzePage() {
   const runAnalysis = async () => {
     if (!image) return;
     setPhase("loading"); setStep(0);
-    for (let i = 0; i < STEPS.length; i++) {
-      await new Promise((r) => setTimeout(r, 800));
-      setStep(i + 1);
+    const tick = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 900);
+    try {
+      let result: AnalyzedItem[];
+      if (image.file) {
+        const dataUrl = await fileToCompressedDataUrl(image.file);
+        const res = await analyzeFn({ data: { imageDataUrl: dataUrl } });
+        if (!res.items?.length) throw new Error("No food detected. Try a clearer photo.");
+        result = res.items.map((it, i) => ({ id: `${it.name}-${i}`, ...it }));
+      } else {
+        // sample meals keep the curated mock pipeline
+        await new Promise((r) => setTimeout(r, 1800));
+        result = mockAnalyze(image.sampleId);
+      }
+      setItems(result);
+      setPhase("done");
+      toast.success("Analysis complete", { description: `${result.length} items detected` });
+    } catch (e) {
+      console.error(e);
+      toast.error("Analysis failed", { description: e instanceof Error ? e.message : "Please try again." });
+      setPhase("idle");
+    } finally {
+      clearInterval(tick);
     }
-    const result = mockAnalyze(image.sampleId);
-    setItems(result);
-    setPhase("done");
-    toast.success("Analysis complete", { description: `${result.length} items detected` });
   };
 
   const total = items.reduce(
