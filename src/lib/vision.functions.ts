@@ -48,11 +48,10 @@ export const analyzeFoodImage = createServerFn({ method: "POST" })
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM },
           {
             role: "user",
             content: [
-              { type: "text", text: "Analyze this meal photo and return the JSON described." },
+              { type: "text", text: SYSTEM + "\n\nAnalyze this meal photo and return ONLY the JSON object described above." },
               { type: "image_url", image_url: { url: data.imageDataUrl } },
             ],
           },
