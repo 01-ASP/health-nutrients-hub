@@ -12,7 +12,7 @@ import { useDiary } from "@/store/diary";
 import { Counter } from "@/lib/counter";
 
 export const Route = createFileRoute("/analyze")({
-  head: () => ({ meta: [{ title: "Analyze a meal — NutriLens" }, { name: "description", content: "Upload a photo and get an instant nutrition breakdown." }] }),
+  head: () => ({ meta: [{ title: "Analyze a meal — IntelliBite" }, { name: "description", content: "Upload a photo and get an instant nutrition breakdown." }] }),
   component: AnalyzePage,
 });
 
