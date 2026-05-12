@@ -4,7 +4,7 @@ import { Upload, ScanLine, Tag, Scale, Database, Sparkles } from "lucide-react";
 import { Counter } from "@/lib/counter";
 
 export const Route = createFileRoute("/how-it-works")({
-  head: () => ({ meta: [{ title: "How it works — NutriLens" }, { name: "description", content: "From photo to nutrition in 6 steps." }] }),
+  head: () => ({ meta: [{ title: "How it works — IntelliBite" }, { name: "description", content: "From photo to nutrition in 6 steps." }] }),
   component: HowItWorks,
 });
 
@@ -21,7 +21,7 @@ function HowItWorks() {
   return (
     <div className="max-w-7xl mx-auto px-5 md:px-8 py-10 md:py-14">
       <h1 className="text-3xl md:text-5xl font-bold max-w-2xl">From a single photo to <span className="text-primary">complete nutrition</span> — in seconds.</h1>
-      <p className="text-muted-foreground mt-3 max-w-2xl">A pipeline of detection, classification, and nutrition mapping makes NutriLens fast and surprisingly accurate.</p>
+      <p className="text-muted-foreground mt-3 max-w-2xl">A pipeline of detection, classification, and nutrition mapping makes IntelliBite fast and surprisingly accurate.</p>
 
       <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {STEPS.map((s, i) => (

@@ -6,7 +6,7 @@ import { useDiary } from "@/store/diary";
 import { Counter } from "@/lib/counter";
 
 export const Route = createFileRoute("/diary")({
-  head: () => ({ meta: [{ title: "Diary — NutriLens" }, { name: "description", content: "Track meals across the week." }] }),
+  head: () => ({ meta: [{ title: "Diary — IntelliBite" }, { name: "description", content: "Track meals across the week." }] }),
   component: DiaryPage,
 });
 

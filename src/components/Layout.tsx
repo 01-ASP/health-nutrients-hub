@@ -44,7 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <span className="relative inline-flex w-8 h-8 items-center justify-center rounded-lg bg-primary/15 ring-1 ring-primary/30">
               <Leaf className="w-4 h-4 text-primary" />
             </span>
-            <span className="font-bold tracking-tight text-lg">NutriLens</span>
+            <span className="font-bold tracking-tight text-lg">IntelliBite</span>
           </Link>
           <div className="hidden md:flex items-center gap-1">
             {links.slice(1).map((l) => (
@@ -103,7 +103,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="max-w-7xl mx-auto px-5 md:px-8 py-10 flex flex-col md:flex-row md:items-center gap-6 justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Leaf className="w-4 h-4 text-primary" />
-            <span className="font-semibold text-foreground">NutriLens</span>
+            <span className="font-semibold text-foreground">IntelliBite</span>
             <span>· Eat smart. Live well.</span>
           </div>
           <div className="flex items-center gap-4">

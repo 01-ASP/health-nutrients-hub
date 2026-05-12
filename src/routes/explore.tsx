@@ -8,7 +8,7 @@ import { Counter } from "@/lib/counter";
 const TAGS = ["Vegetarian", "High Protein", "Low Carb", "Indian", "Fast Food", "Breakfast"] as const;
 
 export const Route = createFileRoute("/explore")({
-  head: () => ({ meta: [{ title: "Food database — NutriLens" }, { name: "description", content: "Explore foods, macros, and serving sizes." }] }),
+  head: () => ({ meta: [{ title: "Food database — IntelliBite" }, { name: "description", content: "Explore foods, macros, and serving sizes." }] }),
   component: ExplorePage,
 });
 

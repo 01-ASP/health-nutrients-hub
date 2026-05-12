@@ -74,9 +74,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "NutriLens — Know exactly what you're eating" },
+      { title: "IntelliBite — Know exactly what you're eating" },
       { name: "description", content: "Upload any meal photo. AI identifies foods and breaks down calories, macros, and nutrition in seconds." },
-      { property: "og:title", content: "NutriLens — AI calorie estimation" },
+      { property: "og:title", content: "IntelliBite — AI calorie estimation" },
       { property: "og:description", content: "Snap a meal, get instant nutrition." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
