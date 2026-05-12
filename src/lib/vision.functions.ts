@@ -57,7 +57,6 @@ export const analyzeFoodImage = createServerFn({ method: "POST" })
             ],
           },
         ],
-        response_format: { type: "json_object" },
       }),
     });
 
