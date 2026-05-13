@@ -2,7 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { UploadCloud, Camera, Loader2, ChevronDown, Save, Share2, RefreshCw, Sparkles, X } from "lucide-react";
+import {
+  UploadCloud,
+  Camera,
+  Loader2,
+  ChevronDown,
+  Save,
+  Share2,
+  RefreshCw,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { mockAnalyze, insightFor, type AnalyzedItem } from "@/lib/analyze";
@@ -12,7 +22,12 @@ import { useDiary } from "@/store/diary";
 import { Counter } from "@/lib/counter";
 
 export const Route = createFileRoute("/analyze")({
-  head: () => ({ meta: [{ title: "Analyze a meal — IntelliBite" }, { name: "description", content: "Upload a photo and get an instant nutrition breakdown." }] }),
+  head: () => ({
+    meta: [
+      { title: "Analyze a meal — IntelliBite" },
+      { name: "description", content: "Upload a photo and get an instant nutrition breakdown." },
+    ],
+  }),
   component: AnalyzePage,
 });
 
@@ -30,7 +45,11 @@ function isHeicPhoto(file: File) {
 }
 
 function isAcceptedMedia(file: File) {
-  return ACCEPTED_MEDIA.test(file.name) || /image\/(jpeg|png|webp|heic|heif)/i.test(file.type) || isLivePhotoVideo(file);
+  return (
+    ACCEPTED_MEDIA.test(file.name) ||
+    /image\/(jpeg|png|webp|heic|heif)/i.test(file.type) ||
+    isLivePhotoVideo(file)
+  );
 }
 
 async function fileToCompressedDataUrl(file: File, maxDim = 640, quality = 0.65): Promise<string> {
@@ -47,13 +66,18 @@ async function heicToJpegBlob(file: File, quality: number): Promise<Blob> {
   return blob;
 }
 
-async function blobToCompressedDataUrl(blob: Blob, maxDim: number, quality: number): Promise<string> {
+async function blobToCompressedDataUrl(
+  blob: Blob,
+  maxDim: number,
+  quality: number,
+): Promise<string> {
   const bitmap = await createImageBitmap(blob);
   const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
   const w = Math.round(bitmap.width * scale);
   const h = Math.round(bitmap.height * scale);
   const canvas = document.createElement("canvas");
-  canvas.width = w; canvas.height = h;
+  canvas.width = w;
+  canvas.height = h;
   const ctx = canvas.getContext("2d")!;
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, w, h);
@@ -71,19 +95,31 @@ async function videoFrameToDataUrl(file: File, maxDim: number, quality: number):
     video.playsInline = true;
     video.preload = "metadata";
     await new Promise<void>((resolve, reject) => {
-      const timeout = window.setTimeout(() => reject(new Error("Live Photo took too long to load.")), 10000);
+      const timeout = window.setTimeout(
+        () => reject(new Error("Live Photo took too long to load.")),
+        10000,
+      );
       video.onloadedmetadata = () => {
-        video.currentTime = Number.isFinite(video.duration) ? Math.min(0.25, Math.max(0, video.duration / 2)) : 0;
+        video.currentTime = Number.isFinite(video.duration)
+          ? Math.min(0.25, Math.max(0, video.duration / 2))
+          : 0;
       };
-      video.onseeked = () => { window.clearTimeout(timeout); resolve(); };
-      video.onerror = () => { window.clearTimeout(timeout); reject(new Error("Could not read the Live Photo video.")); };
+      video.onseeked = () => {
+        window.clearTimeout(timeout);
+        resolve();
+      };
+      video.onerror = () => {
+        window.clearTimeout(timeout);
+        reject(new Error("Could not read the Live Photo video."));
+      };
       video.load();
     });
     const scale = Math.min(1, maxDim / Math.max(video.videoWidth, video.videoHeight));
     const w = Math.max(1, Math.round(video.videoWidth * scale));
     const h = Math.max(1, Math.round(video.videoHeight * scale));
     const canvas = document.createElement("canvas");
-    canvas.width = w; canvas.height = h;
+    canvas.width = w;
+    canvas.height = h;
     const ctx = canvas.getContext("2d")!;
     ctx.drawImage(video, 0, 0, w, h);
     return canvas.toDataURL("image/jpeg", quality);
@@ -93,7 +129,13 @@ async function videoFrameToDataUrl(file: File, maxDim: number, quality: number):
 }
 
 function AnalyzePage() {
-  const [image, setImage] = useState<{ url: string; name: string; size: number; sampleId?: string; file?: File } | null>(null);
+  const [image, setImage] = useState<{
+    url: string;
+    name: string;
+    size: number;
+    sampleId?: string;
+    file?: File;
+  } | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [step, setStep] = useState(0);
   const [items, setItems] = useState<AnalyzedItem[]>([]);
@@ -103,8 +145,16 @@ function AnalyzePage() {
   const analyzeFn = useServerFn(analyzeFoodImage);
 
   const handleFile = (f: File) => {
-    if (f.size > 10 * 1024 * 1024) { toast.error("Image too large", { description: "Max size is 10MB." }); return; }
-    if (!isAcceptedMedia(f)) { toast.error("Unsupported format", { description: "Use JPG, PNG, WEBP, HEIC, or a Live Photo video." }); return; }
+    if (f.size > 10 * 1024 * 1024) {
+      toast.error("Image too large", { description: "Max size is 10MB." });
+      return;
+    }
+    if (!isAcceptedMedia(f)) {
+      toast.error("Unsupported format", {
+        description: "Use JPG, PNG, WEBP, HEIC, or a Live Photo video.",
+      });
+      return;
+    }
     setImage({ url: URL.createObjectURL(f), name: f.name, size: f.size, file: f });
     setPhase("idle");
     setItems([]);
@@ -119,7 +169,8 @@ function AnalyzePage() {
 
   const runAnalysis = async () => {
     if (!image) return;
-    setPhase("loading"); setStep(0);
+    setPhase("loading");
+    setStep(0);
     const tick = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 900);
     try {
       let result: AnalyzedItem[];
@@ -138,7 +189,9 @@ function AnalyzePage() {
       toast.success("Analysis complete", { description: `${result.length} items detected` });
     } catch (e) {
       console.error(e);
-      toast.error("Analysis failed", { description: e instanceof Error ? e.message : "Please try again." });
+      toast.error("Analysis failed", {
+        description: e instanceof Error ? e.message : "Please try again.",
+      });
       setPhase("idle");
     } finally {
       clearInterval(tick);
@@ -146,8 +199,13 @@ function AnalyzePage() {
   };
 
   const total = items.reduce(
-    (a, b) => ({ kcal: a.kcal + b.kcal, protein: a.protein + b.protein, carbs: a.carbs + b.carbs, fat: a.fat + b.fat }),
-    { kcal: 0, protein: 0, carbs: 0, fat: 0 }
+    (a, b) => ({
+      kcal: a.kcal + b.kcal,
+      protein: a.protein + b.protein,
+      carbs: a.carbs + b.carbs,
+      fat: a.fat + b.fat,
+    }),
+    { kcal: 0, protein: 0, carbs: 0, fat: 0 },
   );
 
   const saveToDiary = () => {
@@ -167,7 +225,11 @@ function AnalyzePage() {
     toast.success("Meal saved to diary 🌱");
   };
 
-  const reset = () => { setImage(null); setItems([]); setPhase("idle"); };
+  const reset = () => {
+    setImage(null);
+    setItems([]);
+    setPhase("idle");
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-5 md:px-8 py-10 md:py-14">
@@ -182,11 +244,21 @@ function AnalyzePage() {
           {!image ? (
             <label
               onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const f = e.dataTransfer.files?.[0];
+                if (f) handleFile(f);
+              }}
               className="relative block cursor-pointer rounded-2xl border-2 border-dashed border-white/15 hover:border-primary/60 transition-colors p-10 md:p-14 text-center"
             >
               <div className="absolute inset-0 rounded-2xl dashed-anim opacity-30 pointer-events-none" />
-              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/quicktime,video/mp4" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/quicktime,video/mp4"
+                className="hidden"
+                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+              />
               <div className="relative">
                 <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/15 text-primary flex items-center justify-center mb-4">
                   <UploadCloud className="w-7 h-7" />
@@ -194,11 +266,22 @@ function AnalyzePage() {
                 <p className="text-lg font-semibold">Drop your meal photo here</p>
                 <p className="text-sm text-muted-foreground mt-1">or click to browse · max 10MB</p>
                 <div className="mt-5 flex items-center justify-center gap-2">
-                  {["JPG", "PNG", "WEBP", "HEIC", "LIVE"].map((t) => <span key={t} className="px-2 py-0.5 text-[10px] font-semibold tracking-wide rounded-md bg-white/5 text-muted-foreground">{t}</span>)}
+                  {["JPG", "PNG", "WEBP", "HEIC", "LIVE"].map((t) => (
+                    <span
+                      key={t}
+                      className="px-2 py-0.5 text-[10px] font-semibold tracking-wide rounded-md bg-white/5 text-muted-foreground"
+                    >
+                      {t}
+                    </span>
+                  ))}
                 </div>
                 <button
                   type="button"
-                  onClick={(e) => { e.preventDefault(); fileRef.current?.setAttribute("capture", "environment"); fileRef.current?.click(); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    fileRef.current?.setAttribute("capture", "environment");
+                    fileRef.current?.click();
+                  }}
                   className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 text-sm hover:border-primary/40"
                 >
                   <Camera className="w-4 h-4" /> Use camera
@@ -206,35 +289,57 @@ function AnalyzePage() {
               </div>
             </label>
           ) : (
-            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="glass p-3">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="glass p-3"
+            >
               <div className="relative rounded-xl overflow-hidden aspect-[4/3] bg-black/40">
                 {image.file && isLivePhotoVideo(image.file) ? (
-                  <video src={image.url} className="w-full h-full object-cover" muted playsInline controls={false} />
+                  <video
+                    src={image.url}
+                    className="w-full h-full object-cover"
+                    muted
+                    playsInline
+                    controls={false}
+                  />
                 ) : (
                   <img src={image.url} alt={image.name} className="w-full h-full object-cover" />
                 )}
                 {phase === "loading" && (
                   <motion.div
-                    initial={{ y: "-10%" }} animate={{ y: "110%" }}
+                    initial={{ y: "-10%" }}
+                    animate={{ y: "110%" }}
                     transition={{ repeat: Infinity, duration: 1.8, ease: "linear" }}
                     className="absolute inset-x-0 h-[2px] bg-primary shadow-[0_0_20px_4px_rgba(34,197,94,0.6)]"
                   />
                 )}
-                {phase === "done" && items.map((it, i) => (
-                  <motion.div
-                    key={it.id + i}
-                    initial={{ opacity: 0, scale: 0.92 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.15 + i * 0.2, duration: 0.35 }}
-                    className="absolute"
-                    style={{ left: `${it.bbox.x}%`, top: `${it.bbox.y}%`, width: `${it.bbox.w}%`, height: `${it.bbox.h}%`, border: `2px solid var(--amber)`, borderRadius: 10 }}
-                  >
-                    <span className="absolute -top-7 left-0 px-2 py-1 rounded-md text-[10px] md:text-xs font-semibold whitespace-nowrap bg-[var(--amber)] text-black">
-                      {it.name} · {it.kcal} kcal
-                    </span>
-                  </motion.div>
-                ))}
-                <button onClick={reset} className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-white/10">
+                {phase === "done" &&
+                  items.map((it, i) => (
+                    <motion.div
+                      key={it.id + i}
+                      initial={{ opacity: 0, scale: 0.92 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.15 + i * 0.2, duration: 0.35 }}
+                      className="absolute"
+                      style={{
+                        left: `${it.bbox.x}%`,
+                        top: `${it.bbox.y}%`,
+                        width: `${it.bbox.w}%`,
+                        height: `${it.bbox.h}%`,
+                        border: `2px solid var(--amber)`,
+                        borderRadius: 10,
+                      }}
+                    >
+                      <span className="absolute -top-7 left-0 px-2 py-1 rounded-md text-[10px] md:text-xs font-semibold whitespace-nowrap bg-[var(--amber)] text-black">
+                        {it.name} · {it.kcal} kcal
+                      </span>
+                    </motion.div>
+                  ))}
+                <button
+                  onClick={reset}
+                  className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-white/10"
+                >
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -250,18 +355,39 @@ function AnalyzePage() {
             onClick={runAnalysis}
             className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-primary text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01] transition-transform shadow-[0_10px_40px_-10px_rgba(34,197,94,0.5)]"
           >
-            {phase === "loading" ? (<><Loader2 className="w-4 h-4 animate-spin" /> {STEPS[Math.min(step, STEPS.length - 1)]}</>) : (<>Analyze meal</>)}
+            {phase === "loading" ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />{" "}
+                {STEPS[Math.min(step, STEPS.length - 1)]}
+              </>
+            ) : (
+              <>Analyze meal</>
+            )}
           </button>
 
           <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Or try a sample</h3>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+              Or try a sample
+            </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {SAMPLE_MEALS.map((s) => (
-                <motion.button key={s.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => pickSample(s.id)} className="glass glass-hover group relative overflow-hidden rounded-xl aspect-square">
-                  <img src={s.img} alt={s.name} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                <motion.button
+                  key={s.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => pickSample(s.id)}
+                  className="glass glass-hover group relative overflow-hidden rounded-xl aspect-square"
+                >
+                  <img
+                    src={s.img}
+                    alt={s.name}
+                    className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                   <div className="absolute bottom-2 left-2 right-2 text-left">
-                    <div className="text-xs font-semibold leading-tight">{s.emoji} {s.name}</div>
+                    <div className="text-xs font-semibold leading-tight">
+                      {s.emoji} {s.name}
+                    </div>
                   </div>
                 </motion.button>
               ))}
@@ -281,7 +407,7 @@ function AnalyzePage() {
 
           {phase === "loading" && (
             <div className="space-y-3">
-              {[0,1,2].map((i) => (
+              {[0, 1, 2].map((i) => (
                 <div key={i} className="glass p-5">
                   <div className="h-4 w-1/3 rounded shimmer mb-3" />
                   <div className="h-3 w-1/2 rounded shimmer mb-4" />
@@ -296,16 +422,32 @@ function AnalyzePage() {
               <SummaryCard total={total} goal={goal} />
               <InsightChip text={insightFor(items)} />
               <div className="space-y-3">
-                {items.map((it, i) => <FoodCard key={i} item={it} index={i} />)}
+                {items.map((it, i) => (
+                  <FoodCard key={i} item={it} index={i} />
+                ))}
               </div>
               <div className="flex flex-wrap gap-2 pt-2">
-                <button onClick={saveToDiary} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm">
+                <button
+                  onClick={saveToDiary}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm"
+                >
                   <Save className="w-4 h-4" /> Save to diary
                 </button>
-                <button onClick={() => { navigator.clipboard?.writeText(`${total.kcal} kcal · ${items.map(i=>i.name).join(", ")}`); toast.success("Copied to clipboard"); }} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-white/10 text-sm hover:border-white/30">
+                <button
+                  onClick={() => {
+                    navigator.clipboard?.writeText(
+                      `${total.kcal} kcal · ${items.map((i) => i.name).join(", ")}`,
+                    );
+                    toast.success("Copied to clipboard");
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-white/10 text-sm hover:border-white/30"
+                >
                   <Share2 className="w-4 h-4" /> Share
                 </button>
-                <button onClick={reset} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-white/10 text-sm hover:border-white/30">
+                <button
+                  onClick={reset}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-white/10 text-sm hover:border-white/30"
+                >
                   <RefreshCw className="w-4 h-4" /> Analyze another
                 </button>
               </div>
@@ -317,7 +459,13 @@ function AnalyzePage() {
   );
 }
 
-function SummaryCard({ total, goal }: { total: { kcal: number; protein: number; carbs: number; fat: number }; goal: number }) {
+function SummaryCard({
+  total,
+  goal,
+}: {
+  total: { kcal: number; protein: number; carbs: number; fat: number };
+  goal: number;
+}) {
   const pct = Math.min(100, Math.round((total.kcal / goal) * 100));
   const data = [
     { name: "Protein", value: total.protein * 4, color: "var(--protein)" },
@@ -330,17 +478,31 @@ function SummaryCard({ total, goal }: { total: { kcal: number; protein: number; 
         <div className="w-28 h-28 relative flex-shrink-0">
           <ResponsiveContainer>
             <PieChart>
-              <Pie data={data} dataKey="value" innerRadius={36} outerRadius={52} paddingAngle={3} stroke="none">
-                {data.map((d, i) => <Cell key={i} fill={d.color} />)}
+              <Pie
+                data={data}
+                dataKey="value"
+                innerRadius={36}
+                outerRadius={52}
+                paddingAngle={3}
+                stroke="none"
+              >
+                {data.map((d, i) => (
+                  <Cell key={i} fill={d.color} />
+                ))}
               </Pie>
             </PieChart>
           </ResponsiveContainer>
-          <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">macros</div>
+          <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
+            macros
+          </div>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider">Total calories</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wider">
+            Total calories
+          </div>
           <div className="text-5xl font-bold text-[var(--amber)] tabular leading-none mt-1">
-            <Counter value={total.kcal} /> <span className="text-base text-muted-foreground font-medium">kcal</span>
+            <Counter value={total.kcal} />{" "}
+            <span className="text-base text-muted-foreground font-medium">kcal</span>
           </div>
           <div className="mt-3 flex gap-3 text-xs">
             <Macro color="var(--protein)" label="P" value={total.protein} />
@@ -351,11 +513,18 @@ function SummaryCard({ total, goal }: { total: { kcal: number; protein: number; 
       </div>
       <div className="mt-5">
         <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
-          <span>{pct}% of {goal} kcal daily goal</span>
+          <span>
+            {pct}% of {goal} kcal daily goal
+          </span>
           <span>{Math.max(0, goal - total.kcal)} kcal left</span>
         </div>
         <div className="h-2 rounded-full bg-white/5 overflow-hidden">
-          <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }} className="h-full bg-primary" />
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="h-full bg-primary"
+          />
         </div>
       </div>
     </div>
@@ -374,7 +543,11 @@ function Macro({ color, label, value }: { color: string; label: string; value: n
 
 function InsightChip({ text }: { text: string }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex items-start gap-3 p-4 rounded-2xl border border-[var(--amber)]/30 bg-[var(--amber)]/5">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex items-start gap-3 p-4 rounded-2xl border border-[var(--amber)]/30 bg-[var(--amber)]/5"
+    >
       <Sparkles className="w-4 h-4 text-[var(--amber)] mt-0.5 flex-shrink-0" />
       <p className="text-sm leading-relaxed">{text}</p>
     </motion.div>
@@ -385,7 +558,12 @@ function FoodCard({ item, index }: { item: AnalyzedItem; index: number }) {
   const [open, setOpen] = useState(false);
   const totalMacroG = item.protein + item.carbs + item.fat;
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.08 }} className="glass overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.08 }}
+      className="glass overflow-hidden"
+    >
       <button onClick={() => setOpen((s) => !s)} className="w-full p-5 text-left">
         <div className="flex items-start gap-3">
           <span className="text-3xl">{item.emoji}</span>
@@ -399,10 +577,14 @@ function FoodCard({ item, index }: { item: AnalyzedItem; index: number }) {
             <div className="text-xs text-muted-foreground mt-0.5">{item.portion}</div>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-[var(--amber)] tabular leading-none"><Counter value={item.kcal} /></div>
+            <div className="text-2xl font-bold text-[var(--amber)] tabular leading-none">
+              <Counter value={item.kcal} />
+            </div>
             <div className="text-[10px] text-muted-foreground mt-1">kcal</div>
           </div>
-          <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+          <ChevronDown
+            className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+          />
         </div>
         <div className="mt-4 grid grid-cols-3 gap-3">
           {[
@@ -412,10 +594,17 @@ function FoodCard({ item, index }: { item: AnalyzedItem; index: number }) {
           ].map((m) => (
             <div key={m.l}>
               <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
-                <span>{m.l}</span><span className="tabular">{m.v.toFixed(1)}g</span>
+                <span>{m.l}</span>
+                <span className="tabular">{m.v.toFixed(1)}g</span>
               </div>
               <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (m.v / Math.max(1, totalMacroG)) * 100)}%` }} transition={{ duration: 0.8, delay: 0.1 + index * 0.08 }} style={{ background: m.c }} className="h-full" />
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(100, (m.v / Math.max(1, totalMacroG)) * 100)}%` }}
+                  transition={{ duration: 0.8, delay: 0.1 + index * 0.08 }}
+                  style={{ background: m.c }}
+                  className="h-full"
+                />
               </div>
             </div>
           ))}
@@ -423,7 +612,12 @@ function FoodCard({ item, index }: { item: AnalyzedItem; index: number }) {
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-white/5">
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden border-t border-white/5"
+          >
             <div className="px-5 py-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               {[
                 { l: "Fiber", v: `${item.fiber}g` },
