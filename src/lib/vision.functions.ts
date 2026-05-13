@@ -32,7 +32,8 @@ Return ONLY valid JSON: { "items": VisionItem[] }. No prose, no markdown.`;
 export const analyzeFoodImage = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => {
     const d = data as { imageDataUrl?: string };
-    if (!d?.imageDataUrl || typeof d.imageDataUrl !== "string") throw new Error("imageDataUrl required");
+    if (!d?.imageDataUrl || typeof d.imageDataUrl !== "string")
+      throw new Error("imageDataUrl required");
     return { imageDataUrl: d.imageDataUrl };
   })
   .handler(async ({ data }) => {
@@ -51,7 +52,12 @@ export const analyzeFoodImage = createServerFn({ method: "POST" })
           {
             role: "user",
             content: [
-              { type: "text", text: SYSTEM + "\n\nAnalyze this meal photo and return ONLY the JSON object described above." },
+              {
+                type: "text",
+                text:
+                  SYSTEM +
+                  "\n\nAnalyze this meal photo and return ONLY the JSON object described above.",
+              },
               { type: "image_url", image_url: { url: data.imageDataUrl } },
             ],
           },
@@ -92,8 +98,13 @@ export const analyzeFoodImage = createServerFn({ method: "POST" })
     return { items };
   });
 
-function clamp(n: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, n)); }
-function round1(n: unknown) { const v = typeof n === "number" ? n : 0; return Math.round(v * 10) / 10; }
+function clamp(n: number, lo: number, hi: number) {
+  return Math.max(lo, Math.min(hi, n));
+}
+function round1(n: unknown) {
+  const v = typeof n === "number" ? n : 0;
+  return Math.round(v * 10) / 10;
+}
 function normBbox(b: VisionItem["bbox"] | undefined, i: number) {
   const fallback = [
     { x: 10, y: 12, w: 45, h: 40 },
