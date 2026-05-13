@@ -10,10 +10,10 @@ export const Route = createFileRoute("/how-it-works")({
 
 const STEPS = [
   { icon: Upload, title: "Upload photo", body: "JPG, PNG or WEBP. Any meal, any angle." },
-  { icon: ScanLine, title: "YOLOv8 detection", body: "Real-time object detection finds every item on the plate." },
-  { icon: Tag, title: "Food classification", body: "Custom CNN labels each detection with a confidence score." },
-  { icon: Scale, title: "Portion estimation", body: "Reference-object scaling estimates grams without manual input." },
-  { icon: Database, title: "Nutrition mapping", body: "Cross-referenced with a 50,000-entry nutrition database." },
+  { icon: ScanLine, title: "Vision detection", body: "Google Gemini vision scans the plate and finds every item." },
+  { icon: Tag, title: "Food classification", body: "The model labels each item with a confidence score." },
+  { icon: Scale, title: "Portion estimation", body: "Visual cues estimate grams without manual input." },
+  { icon: Database, title: "Nutrition mapping", body: "Cross-referenced with a curated nutrition database." },
   { icon: Sparkles, title: "Results rendered", body: "Calories, macros, micros — visualized and saveable." },
 ];
 
@@ -40,19 +40,19 @@ function HowItWorks() {
         <div className="grid md:grid-cols-[1fr_auto] gap-6 items-center">
           <div>
             <div className="text-xs uppercase tracking-wider text-primary mb-2">The tech</div>
-            <h3 className="text-2xl md:text-3xl font-bold">Powered by YOLOv8 + a custom food classification model trained on 50,000+ images.</h3>
-            <p className="text-muted-foreground mt-3 max-w-2xl">Runs entirely on commodity hardware. Privacy-first: your photos are never stored.</p>
+            <h3 className="text-2xl md:text-3xl font-bold">Powered by Google Gemini multimodal vision via the Lovable AI Gateway.</h3>
+            <p className="text-muted-foreground mt-3 max-w-2xl">No custom model training required — Gemini handles detection, classification, and portion estimation in one pass. Privacy-first: your photos are never stored.</p>
           </div>
           <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" /> YOLOv8 · CNN · 50k dataset
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Gemini · Multimodal · Lovable AI
           </span>
         </div>
 
         <div className="mt-8 grid grid-cols-3 gap-4">
           {[
-            { v: 95, suf: "%", l: "Detection accuracy" },
-            { v: 50000, suf: "+", l: "Training images" },
-            { v: 1.2, suf: "s", l: "Avg inference time", d: 1 },
+            { v: 90, suf: "%+", l: "Typical detection accuracy" },
+            { v: 100, suf: "+", l: "Foods recognised" },
+            { v: 2, suf: "s", l: "Avg inference time", d: 0 },
           ].map((s) => (
             <div key={s.l} className="text-center">
               <div className="text-3xl md:text-4xl font-bold"><Counter value={s.v} suffix={s.suf} decimals={s.d ?? 0} /></div>
