@@ -71,19 +71,41 @@ async function blobToCompressedDataUrl(
   maxDim: number,
   quality: number,
 ): Promise<string> {
-  const bitmap = await createImageBitmap(blob);
-  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
-  const w = Math.round(bitmap.width * scale);
-  const h = Math.round(bitmap.height * scale);
+  const source = await loadImageSource(blob);
+  const width = source instanceof HTMLImageElement ? source.naturalWidth : source.width;
+  const height = source instanceof HTMLImageElement ? source.naturalHeight : source.height;
+  const scale = Math.min(1, maxDim / Math.max(width, height));
+  const w = Math.round(width * scale);
+  const h = Math.round(height * scale);
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d")!;
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, w, h);
-  ctx.drawImage(bitmap, 0, 0, w, h);
-  bitmap.close?.();
+  ctx.drawImage(source, 0, 0, w, h);
+  if (source instanceof ImageBitmap) source.close();
   return canvas.toDataURL("image/jpeg", quality);
+}
+
+async function loadImageSource(blob: Blob): Promise<HTMLImageElement | ImageBitmap> {
+  if ("createImageBitmap" in window) {
+    try {
+      return await createImageBitmap(blob);
+    } catch {
+      // Fall back to an image element for browsers/files that reject createImageBitmap.
+    }
+  }
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = new Image();
+    img.decoding = "async";
+    img.src = url;
+    await img.decode();
+    return img;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 async function videoFrameToDataUrl(file: File, maxDim: number, quality: number): Promise<string> {
