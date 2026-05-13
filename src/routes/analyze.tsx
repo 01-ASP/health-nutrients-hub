@@ -102,7 +102,7 @@ function AnalyzePage() {
 
   const handleFile = (f: File) => {
     if (f.size > 10 * 1024 * 1024) { toast.error("Image too large", { description: "Max size is 10MB." }); return; }
-    if (!/(jpe?g|png|webp)/i.test(f.type)) { toast.error("Unsupported format", { description: "Use JPG, PNG, or WEBP." }); return; }
+    if (!isAcceptedMedia(f)) { toast.error("Unsupported format", { description: "Use JPG, PNG, WEBP, HEIC, or a Live Photo video." }); return; }
     setImage({ url: URL.createObjectURL(f), name: f.name, size: f.size, file: f });
     setPhase("idle");
     setItems([]);
@@ -184,7 +184,7 @@ function AnalyzePage() {
               className="relative block cursor-pointer rounded-2xl border-2 border-dashed border-white/15 hover:border-primary/60 transition-colors p-10 md:p-14 text-center"
             >
               <div className="absolute inset-0 rounded-2xl dashed-anim opacity-30 pointer-events-none" />
-              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/quicktime,video/mp4" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
               <div className="relative">
                 <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/15 text-primary flex items-center justify-center mb-4">
                   <UploadCloud className="w-7 h-7" />
@@ -192,7 +192,7 @@ function AnalyzePage() {
                 <p className="text-lg font-semibold">Drop your meal photo here</p>
                 <p className="text-sm text-muted-foreground mt-1">or click to browse · max 10MB</p>
                 <div className="mt-5 flex items-center justify-center gap-2">
-                  {["JPG", "PNG", "WEBP"].map((t) => <span key={t} className="px-2 py-0.5 text-[10px] font-semibold tracking-wide rounded-md bg-white/5 text-muted-foreground">{t}</span>)}
+                  {["JPG", "PNG", "WEBP", "HEIC", "LIVE"].map((t) => <span key={t} className="px-2 py-0.5 text-[10px] font-semibold tracking-wide rounded-md bg-white/5 text-muted-foreground">{t}</span>)}
                 </div>
                 <button
                   type="button"
