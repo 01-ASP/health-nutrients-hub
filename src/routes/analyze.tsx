@@ -42,7 +42,9 @@ async function fileToCompressedDataUrl(file: File, maxDim = 640, quality = 0.65)
 async function heicToJpegBlob(file: File, quality: number): Promise<Blob> {
   const { default: heic2any } = await import("heic2any");
   const converted = await heic2any({ blob: file, toType: "image/jpeg", quality });
-  return Array.isArray(converted) ? converted[0] : converted;
+  const blob = Array.isArray(converted) ? converted[0] : converted;
+  if (!blob) throw new Error("Could not read the HEIC photo.");
+  return blob;
 }
 
 async function blobToCompressedDataUrl(blob: Blob, maxDim: number, quality: number): Promise<string> {
