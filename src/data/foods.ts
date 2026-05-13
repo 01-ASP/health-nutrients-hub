@@ -26,6 +26,6 @@ export const SAMPLE_MEALS: { id: string; name: string; img: string; emoji: strin
   { id: "salad", name: "Garden Salad", img: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80", emoji: "🥗", items: ["salad"] },
   { id: "pizza", name: "Pepperoni Pizza", img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80", emoji: "🍕", items: ["pizza"] },
   { id: "pancakes", name: "Pancakes", img: "https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=600&q=80", emoji: "🥞", items: ["pancakes"] },
-  { id: "idli", name: "Idli & Sambar", img: "https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=600&q=80", emoji: "🍲", items: ["idli"] },
+  { id: "idli", name: "Dose", img: "https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=600&q=80", emoji: "🍲", items: ["idli"] },
   { id: "burger", name: "Cheeseburger", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80", emoji: "🍔", items: ["burger"] },
 ];
