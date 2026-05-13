@@ -95,23 +95,34 @@ async function videoFrameToDataUrl(file: File, maxDim: number, quality: number):
     video.playsInline = true;
     video.preload = "metadata";
     await new Promise<void>((resolve, reject) => {
-      const timeout = window.setTimeout(
-        () => reject(new Error("Live Photo took too long to load.")),
-        10000,
-      );
-      video.onloadedmetadata = () => {
-        video.currentTime = Number.isFinite(video.duration)
-          ? Math.min(0.25, Math.max(0, video.duration / 2))
-          : 0;
-      };
-      video.onseeked = () => {
+      let targetTime = 0;
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
         window.clearTimeout(timeout);
         resolve();
       };
-      video.onerror = () => {
+      const fail = (message: string) => {
+        if (settled) return;
+        settled = true;
         window.clearTimeout(timeout);
-        reject(new Error("Could not read the Live Photo video."));
+        reject(new Error(message));
       };
+      const timeout = window.setTimeout(
+        () => fail("Live Photo took too long to load."),
+        10000,
+      );
+      video.onloadedmetadata = () => {
+        targetTime = Number.isFinite(video.duration) && video.duration > 0
+          ? Math.min(0.25, Math.max(0, video.duration / 2))
+          : 0;
+        if (targetTime > 0) video.currentTime = targetTime;
+        else if (video.readyState >= 2) finish();
+      };
+      video.onloadeddata = () => { if (targetTime === 0) finish(); };
+      video.onseeked = finish;
+      video.onerror = () => fail("Could not read the Live Photo video.");
       video.load();
     });
     const scale = Math.min(1, maxDim / Math.max(video.videoWidth, video.videoHeight));
