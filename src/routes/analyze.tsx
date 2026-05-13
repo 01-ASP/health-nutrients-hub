@@ -109,18 +109,18 @@ async function videoFrameToDataUrl(file: File, maxDim: number, quality: number):
         window.clearTimeout(timeout);
         reject(new Error(message));
       };
-      const timeout = window.setTimeout(
-        () => fail("Live Photo took too long to load."),
-        10000,
-      );
+      const timeout = window.setTimeout(() => fail("Live Photo took too long to load."), 10000);
       video.onloadedmetadata = () => {
-        targetTime = Number.isFinite(video.duration) && video.duration > 0
-          ? Math.min(0.25, Math.max(0, video.duration / 2))
-          : 0;
+        targetTime =
+          Number.isFinite(video.duration) && video.duration > 0
+            ? Math.min(0.25, Math.max(0, video.duration / 2))
+            : 0;
         if (targetTime > 0) video.currentTime = targetTime;
         else if (video.readyState >= 2) finish();
       };
-      video.onloadeddata = () => { if (targetTime === 0) finish(); };
+      video.onloadeddata = () => {
+        if (targetTime === 0) finish();
+      };
       video.onseeked = finish;
       video.onerror = () => fail("Could not read the Live Photo video.");
       video.load();
