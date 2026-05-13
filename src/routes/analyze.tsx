@@ -84,7 +84,7 @@ async function blobToCompressedDataUrl(
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, w, h);
   ctx.drawImage(source, 0, 0, w, h);
-  if (source instanceof ImageBitmap) source.close();
+  if (typeof ImageBitmap !== "undefined" && source instanceof ImageBitmap) source.close();
   return canvas.toDataURL("image/jpeg", quality);
 }
 
