@@ -19,16 +19,75 @@ export const Route = createFileRoute("/analyze")({
 type Phase = "idle" | "loading" | "done";
 const STEPS = ["Detecting food items…", "Estimating portions…", "Calculating nutrition…"];
 
-async function fileToCompressedDataUrl(file: File, maxDim = 768, quality = 0.72): Promise<string> {
-  const bitmap = await createImageBitmap(file);
+const ACCEPTED_MEDIA = /\.(jpe?g|png|webp|heic|heif|mov|mp4|m4v)$/i;
+
+function isLivePhotoVideo(file: File) {
+  return /video\/(quicktime|mp4|x-m4v)/i.test(file.type) || /\.(mov|mp4|m4v)$/i.test(file.name);
+}
+
+function isHeicPhoto(file: File) {
+  return /image\/(heic|heif)/i.test(file.type) || /\.(heic|heif)$/i.test(file.name);
+}
+
+function isAcceptedMedia(file: File) {
+  return ACCEPTED_MEDIA.test(file.name) || /image\/(jpeg|png|webp|heic|heif)/i.test(file.type) || isLivePhotoVideo(file);
+}
+
+async function fileToCompressedDataUrl(file: File, maxDim = 640, quality = 0.65): Promise<string> {
+  if (isLivePhotoVideo(file)) return videoFrameToDataUrl(file, maxDim, quality);
+  const source = isHeicPhoto(file) ? await heicToJpegBlob(file, quality) : file;
+  return blobToCompressedDataUrl(source, maxDim, quality);
+}
+
+async function heicToJpegBlob(file: File, quality: number): Promise<Blob> {
+  const { default: heic2any } = await import("heic2any");
+  const converted = await heic2any({ blob: file, toType: "image/jpeg", quality });
+  return Array.isArray(converted) ? converted[0] : converted;
+}
+
+async function blobToCompressedDataUrl(blob: Blob, maxDim: number, quality: number): Promise<string> {
+  const bitmap = await createImageBitmap(blob);
   const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
   const w = Math.round(bitmap.width * scale);
   const h = Math.round(bitmap.height * scale);
   const canvas = document.createElement("canvas");
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, w, h);
   ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close?.();
   return canvas.toDataURL("image/jpeg", quality);
+}
+
+async function videoFrameToDataUrl(file: File, maxDim: number, quality: number): Promise<string> {
+  const url = URL.createObjectURL(file);
+  try {
+    const video = document.createElement("video");
+    video.src = url;
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = "metadata";
+    await new Promise<void>((resolve, reject) => {
+      const timeout = window.setTimeout(() => reject(new Error("Live Photo took too long to load.")), 10000);
+      video.onloadedmetadata = () => {
+        video.currentTime = Number.isFinite(video.duration) ? Math.min(0.25, Math.max(0, video.duration / 2)) : 0;
+      };
+      video.onseeked = () => { window.clearTimeout(timeout); resolve(); };
+      video.onerror = () => { window.clearTimeout(timeout); reject(new Error("Could not read the Live Photo video.")); };
+      video.load();
+    });
+    const scale = Math.min(1, maxDim / Math.max(video.videoWidth, video.videoHeight));
+    const w = Math.max(1, Math.round(video.videoWidth * scale));
+    const h = Math.max(1, Math.round(video.videoHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(video, 0, 0, w, h);
+    return canvas.toDataURL("image/jpeg", quality);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 function AnalyzePage() {
