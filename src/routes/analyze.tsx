@@ -206,7 +206,11 @@ function AnalyzePage() {
           ) : (
             <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="glass p-3">
               <div className="relative rounded-xl overflow-hidden aspect-[4/3] bg-black/40">
-                <img src={image.url} alt={image.name} className="w-full h-full object-cover" />
+                {image.file && isLivePhotoVideo(image.file) ? (
+                  <video src={image.url} className="w-full h-full object-cover" muted playsInline controls={false} />
+                ) : (
+                  <img src={image.url} alt={image.name} className="w-full h-full object-cover" />
+                )}
                 {phase === "loading" && (
                   <motion.div
                     initial={{ y: "-10%" }} animate={{ y: "110%" }}
