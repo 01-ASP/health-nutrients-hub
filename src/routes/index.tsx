@@ -62,7 +62,7 @@ function Landing() {
         <div className="grid md:grid-cols-3 gap-4">
           {[
             { icon: ScanLine, title: "Computer vision", body: "YOLOv8 detection finds every item in a single photo — even on cluttered plates." },
-            { icon: Zap, title: "Instant nutrition", body: "Macros, micros, and calories mapped from a 50,000+ food database in milliseconds." },
+            { icon: Zap, title: "Instant nutrition", body: "Macros, micros, and calories mapped from a curated food database in seconds." },
             { icon: Sparkles, title: "Smart insights", body: "Personalized nudges that help you eat better — without judgement or guilt." },
           ].map((f, i) => (
             <motion.div key={f.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="glass glass-hover p-6">
