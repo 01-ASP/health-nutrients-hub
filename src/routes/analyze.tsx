@@ -213,9 +213,19 @@ function AnalyzePage() {
         if (!res.items?.length) throw new Error("No food detected. Try a clearer photo.");
         result = res.items.map((it, i) => ({ id: `${it.name}-${i}`, ...it }));
       } else {
-        // sample meals keep the curated mock pipeline
-        await new Promise((r) => setTimeout(r, 1800));
-        result = mockAnalyze(image.sampleId);
+        // Sample meals: fetch the remote image, compress, then run real AI analysis.
+        try {
+          const resp = await fetch(image.url, { mode: "cors" });
+          if (!resp.ok) throw new Error(`Image fetch failed: ${resp.status}`);
+          const blob = await resp.blob();
+          const dataUrl = await blobToCompressedDataUrl(blob, 640, 0.65);
+          const res = await analyzeFn({ data: { imageDataUrl: dataUrl } });
+          if (!res.items?.length) throw new Error("empty");
+          result = res.items.map((it, i) => ({ id: `${it.name}-${i}`, ...it }));
+        } catch (err) {
+          console.warn("Sample AI analysis failed, falling back to curated data", err);
+          result = mockAnalyze(image.sampleId);
+        }
       }
       setItems(result);
       setPhase("done");
