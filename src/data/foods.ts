@@ -29,3 +29,4 @@ export const SAMPLE_MEALS: { id: string; name: string; img: string; emoji: strin
   { id: "idli", name: "Dose", img: "https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=600&q=80", emoji: "🍲", items: ["Dose"] },
   { id: "burger", name: "Cheeseburger", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80", emoji: "🍔", items: ["burger"] },
 ];
+
