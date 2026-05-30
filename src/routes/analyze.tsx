@@ -177,6 +177,91 @@ function AnalyzePage() {
   const goal = useDiary((s) => s.goal);
   const analyzeFn = useServerFn(analyzeFoodImage);
 
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+  };
+
+  const startCamera = async (mode: "environment" | "user" = facingMode) => {
+    setCameraError(null);
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError("Camera not supported in this browser.");
+      return;
+    }
+    try {
+      stopCamera();
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: mode }, width: { ideal: 1280 }, height: { ideal: 960 } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play().catch(() => {});
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Could not access camera.";
+      setCameraError(
+        /permission|denied/i.test(msg)
+          ? "Camera permission denied. Allow access in your browser settings."
+          : msg,
+      );
+    }
+  };
+
+  const openCamera = async () => {
+    setCameraOpen(true);
+    await startCamera(facingMode);
+  };
+
+  const closeCamera = () => {
+    stopCamera();
+    setCameraOpen(false);
+  };
+
+  const flipCamera = async () => {
+    const next = facingMode === "environment" ? "user" : "environment";
+    setFacingMode(next);
+    await startCamera(next);
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) {
+      toast.error("Camera not ready yet");
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(video, 0, 0);
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          toast.error("Capture failed");
+          return;
+        }
+        const file = new File([blob], `camera-${Date.now()}.jpg`, { type: "image/jpeg" });
+        handleFile(file);
+        closeCamera();
+      },
+      "image/jpeg",
+      0.92,
+    );
+  };
+
+  useEffect(() => {
+    return () => stopCamera();
+  }, []);
+
   const handleFile = (f: File) => {
     if (f.size > 10 * 1024 * 1024) {
       toast.error("Image too large", { description: "Max size is 10MB." });
@@ -322,12 +407,11 @@ function AnalyzePage() {
                   type="button"
                   onClick={(e) => {
                     e.preventDefault();
-                    fileRef.current?.setAttribute("capture", "environment");
-                    fileRef.current?.click();
+                    openCamera();
                   }}
                   className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 text-sm hover:border-primary/40"
                 >
-                  <Camera className="w-4 h-4" /> Use camera
+                  <Camera className="w-4 h-4" /> Use live camera
                 </button>
               </div>
             </label>
@@ -498,6 +582,67 @@ function AnalyzePage() {
           )}
         </div>
       </div>
+
+      <AnimatePresence>
+        {cameraOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col"
+          >
+            <div className="flex items-center justify-between p-4 text-white">
+              <span className="text-sm font-semibold">Live camera</span>
+              <button
+                onClick={closeCamera}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20"
+                aria-label="Close camera"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 flex items-center justify-center px-4">
+              {cameraError ? (
+                <div className="max-w-md text-center text-white space-y-3">
+                  <p className="text-base font-semibold">Camera unavailable</p>
+                  <p className="text-sm text-white/70">{cameraError}</p>
+                  <button
+                    onClick={() => startCamera(facingMode)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold"
+                  >
+                    <RefreshCw className="w-4 h-4" /> Retry
+                  </button>
+                </div>
+              ) : (
+                <video
+                  ref={videoRef}
+                  playsInline
+                  muted
+                  autoPlay
+                  className="max-h-full max-w-full rounded-2xl border border-white/10 object-contain bg-black"
+                />
+              )}
+            </div>
+            <div className="p-6 flex items-center justify-center gap-6">
+              <button
+                onClick={flipCamera}
+                disabled={!!cameraError}
+                className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-40"
+                aria-label="Flip camera"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
+              <button
+                onClick={capturePhoto}
+                disabled={!!cameraError}
+                className="w-16 h-16 rounded-full bg-white ring-4 ring-white/30 hover:scale-105 transition-transform disabled:opacity-40"
+                aria-label="Capture photo"
+              />
+              <div className="w-11 h-11" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
