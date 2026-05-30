@@ -76,11 +76,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "IntelliBite — Know exactly what you're eating" },
       { name: "description", content: "Upload any meal photo. AI identifies foods and breaks down calories, macros, and nutrition in seconds." },
-      { property: "og:title", content: "IntelliBite — AI calorie estimation" },
-      { property: "og:description", content: "Snap a meal, get instant nutrition." },
+      { property: "og:title", content: "IntelliBite — Know exactly what you're eating" },
+      { property: "og:description", content: "Upload any meal photo. AI identifies foods and breaks down calories, macros, and nutrition in seconds." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "IntelliBite — Know exactly what you're eating" },
+      { name: "twitter:description", content: "Upload any meal photo. AI identifies foods and breaks down calories, macros, and nutrition in seconds." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f2de8803-17b5-4fc9-b370-373920c94448/id-preview-4542d5e0--fea77f59-9c12-43e9-b978-9d7caec6710c.lovable.app-1780162671478.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f2de8803-17b5-4fc9-b370-373920c94448/id-preview-4542d5e0--fea77f59-9c12-43e9-b978-9d7caec6710c.lovable.app-1780162671478.png" },
     ],
     links: [
       {
