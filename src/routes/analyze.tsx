@@ -582,6 +582,67 @@ function AnalyzePage() {
           )}
         </div>
       </div>
+
+      <AnimatePresence>
+        {cameraOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col"
+          >
+            <div className="flex items-center justify-between p-4 text-white">
+              <span className="text-sm font-semibold">Live camera</span>
+              <button
+                onClick={closeCamera}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20"
+                aria-label="Close camera"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 flex items-center justify-center px-4">
+              {cameraError ? (
+                <div className="max-w-md text-center text-white space-y-3">
+                  <p className="text-base font-semibold">Camera unavailable</p>
+                  <p className="text-sm text-white/70">{cameraError}</p>
+                  <button
+                    onClick={() => startCamera(facingMode)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold"
+                  >
+                    <RefreshCw className="w-4 h-4" /> Retry
+                  </button>
+                </div>
+              ) : (
+                <video
+                  ref={videoRef}
+                  playsInline
+                  muted
+                  autoPlay
+                  className="max-h-full max-w-full rounded-2xl border border-white/10 object-contain bg-black"
+                />
+              )}
+            </div>
+            <div className="p-6 flex items-center justify-center gap-6">
+              <button
+                onClick={flipCamera}
+                disabled={!!cameraError}
+                className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-40"
+                aria-label="Flip camera"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
+              <button
+                onClick={capturePhoto}
+                disabled={!!cameraError}
+                className="w-16 h-16 rounded-full bg-white ring-4 ring-white/30 hover:scale-105 transition-transform disabled:opacity-40"
+                aria-label="Capture photo"
+              />
+              <div className="w-11 h-11" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
