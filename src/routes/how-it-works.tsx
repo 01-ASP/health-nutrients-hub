@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Upload, ScanLine, Tag, Scale, Database, Sparkles } from "lucide-react";
-import { Counter } from "@/lib/counter";
+
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({ meta: [{ title: "How it works — IntelliBite" }, { name: "description", content: "From photo to nutrition in 6 steps." }] }),
