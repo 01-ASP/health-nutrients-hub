@@ -177,6 +177,91 @@ function AnalyzePage() {
   const goal = useDiary((s) => s.goal);
   const analyzeFn = useServerFn(analyzeFoodImage);
 
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+  };
+
+  const startCamera = async (mode: "environment" | "user" = facingMode) => {
+    setCameraError(null);
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError("Camera not supported in this browser.");
+      return;
+    }
+    try {
+      stopCamera();
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: mode }, width: { ideal: 1280 }, height: { ideal: 960 } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play().catch(() => {});
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Could not access camera.";
+      setCameraError(
+        /permission|denied/i.test(msg)
+          ? "Camera permission denied. Allow access in your browser settings."
+          : msg,
+      );
+    }
+  };
+
+  const openCamera = async () => {
+    setCameraOpen(true);
+    await startCamera(facingMode);
+  };
+
+  const closeCamera = () => {
+    stopCamera();
+    setCameraOpen(false);
+  };
+
+  const flipCamera = async () => {
+    const next = facingMode === "environment" ? "user" : "environment";
+    setFacingMode(next);
+    await startCamera(next);
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) {
+      toast.error("Camera not ready yet");
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(video, 0, 0);
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          toast.error("Capture failed");
+          return;
+        }
+        const file = new File([blob], `camera-${Date.now()}.jpg`, { type: "image/jpeg" });
+        handleFile(file);
+        closeCamera();
+      },
+      "image/jpeg",
+      0.92,
+    );
+  };
+
+  useEffect(() => {
+    return () => stopCamera();
+  }, []);
+
   const handleFile = (f: File) => {
     if (f.size > 10 * 1024 * 1024) {
       toast.error("Image too large", { description: "Max size is 10MB." });
@@ -322,12 +407,11 @@ function AnalyzePage() {
                   type="button"
                   onClick={(e) => {
                     e.preventDefault();
-                    fileRef.current?.setAttribute("capture", "environment");
-                    fileRef.current?.click();
+                    openCamera();
                   }}
                   className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 text-sm hover:border-primary/40"
                 >
-                  <Camera className="w-4 h-4" /> Use camera
+                  <Camera className="w-4 h-4" /> Use live camera
                 </button>
               </div>
             </label>
