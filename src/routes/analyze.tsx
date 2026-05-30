@@ -370,51 +370,65 @@ function AnalyzePage() {
         {/* LEFT */}
         <div className="space-y-6">
           {!image ? (
-            <label
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                const f = e.dataTransfer.files?.[0];
-                if (f) handleFile(f);
-              }}
-              className="relative block cursor-pointer rounded-2xl border-2 border-dashed border-white/15 hover:border-primary/60 transition-colors p-10 md:p-14 text-center"
-            >
-              <div className="absolute inset-0 rounded-2xl dashed-anim opacity-30 pointer-events-none" />
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/quicktime,video/mp4"
-                className="hidden"
-                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
-              />
-              <div className="relative">
-                <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/15 text-primary flex items-center justify-center mb-4">
-                  <UploadCloud className="w-7 h-7" />
-                </div>
-                <p className="text-lg font-semibold">Drop your meal photo here</p>
-                <p className="text-sm text-muted-foreground mt-1">or click to browse · max 10MB</p>
-                <div className="mt-5 flex items-center justify-center gap-2">
-                  {["JPG", "PNG", "WEBP", "HEIC", "LIVE"].map((t) => (
-                    <span
-                      key={t}
-                      className="px-2 py-0.5 text-[10px] font-semibold tracking-wide rounded-md bg-white/5 text-muted-foreground"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
+            <div className="space-y-6">
+              <div className="grid sm:grid-cols-2 gap-4">
+                {/* Upload */}
+                <label
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const f = e.dataTransfer.files?.[0];
+                    if (f) handleFile(f);
+                  }}
+                  className="relative block cursor-pointer rounded-2xl border-2 border-dashed border-white/15 hover:border-primary/60 transition-colors p-8 text-center"
+                >
+                  <div className="absolute inset-0 rounded-2xl dashed-anim opacity-30 pointer-events-none" />
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/quicktime,video/mp4"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+                  />
+                  <div className="relative">
+                    <div className="mx-auto w-12 h-12 rounded-2xl bg-primary/15 text-primary flex items-center justify-center mb-3">
+                      <UploadCloud className="w-6 h-6" />
+                    </div>
+                    <p className="font-semibold">Upload photo</p>
+                    <p className="text-xs text-muted-foreground mt-1">Drop or click to browse</p>
+                    <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
+                      {["JPG", "PNG", "WEBP", "HEIC", "LIVE"].map((t) => (
+                        <span
+                          key={t}
+                          className="px-1.5 py-0.5 text-[10px] font-semibold tracking-wide rounded-md bg-white/5 text-muted-foreground"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </label>
+
+                {/* Camera */}
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    openCamera();
-                  }}
-                  className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 text-sm hover:border-primary/40"
+                  onClick={openCamera}
+                  className="relative block rounded-2xl border border-white/10 hover:border-primary/60 transition-colors p-8 text-center"
                 >
-                  <Camera className="w-4 h-4" /> Use live camera
+                  <div className="relative">
+                    <div className="mx-auto w-12 h-12 rounded-2xl bg-primary/15 text-primary flex items-center justify-center mb-3">
+                      <Camera className="w-6 h-6" />
+                    </div>
+                    <p className="font-semibold">Use camera</p>
+                    <p className="text-xs text-muted-foreground mt-1">Snap a photo instantly</p>
+                    <div className="mt-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/5 text-muted-foreground">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      <span className="text-[10px] font-semibold tracking-wide">LIVE</span>
+                    </div>
+                  </div>
                 </button>
               </div>
-            </label>
+            </div>
           ) : (
             <motion.div
               initial={{ opacity: 0, scale: 0.98 }}
